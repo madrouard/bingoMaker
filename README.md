@@ -7,3 +7,7 @@ https://discord.com/api/oauth2/authorize?client_id=617772446874992640&permission
 It does need permission to send messages, read messages, attach files, and delete messages. 
 
 Known issues: The bot will try to use pictures as part of the bingoBoard. While this doesn't crash it, the space itself will be left blank.
+
+Commands: !bingoBoard - creates and uploads a bingo board and then deletes itself 2 minutes later 
+
+The bot in action: https://gfycat.com/courteousenlightenedchimneyswift
