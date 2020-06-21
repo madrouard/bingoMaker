@@ -1,0 +1,57 @@
+import discord
+from discord.ext import commands
+from PIL import Image, ImageDraw, ImageFont
+import random
+import asyncio
+
+bot = commands.Bot(command_prefix='!')
+
+
+def is_me(m):
+    return m.author == bot.user
+
+@bot.event
+async def on_ready():
+    print('We have logged in as {0.user}'.format(bot))
+
+
+def make_bingo(options):
+    img = Image.new('RGB', (1000, 1000), color='white')
+    d = ImageDraw.Draw(img)
+    font = ImageFont.truetype("Roboto-Regular.ttf", 20)
+    for l in range(1, 5):
+        d.line(((l*200, 0), (l*200), 1000), fill='black', width=10)
+        d.line(((0, l*200),  (1000, l*200)), fill='black', width=10)
+    for i in range(0, 5):
+        for j in range(0,5):
+            if (j == 2) and (i == 2):
+                tempList = "Free Space"
+                tempList = tempList.split()
+                temp = ""
+            else:
+                temp = (options.pop(random.randint(0, len(options)-1))).content
+                temp.replace("'", "")
+                tempList = temp.split()
+                temp = ""
+            for k in range(0, len(tempList)):
+                if (k % 2 == 0):
+                    temp += tempList[k] + "\n"
+                else:
+                    temp += tempList[k] + " "
+            d.text(((i*200)+5, (j*200)+5), text=temp, fill='black', font=font)
+    return img
+
+@bot.command()
+async def bingoBoard(ctx):
+    await ctx.message.delete()
+    channel = ctx.channel
+    messages = await channel.history(limit=200).flatten()
+    img = make_bingo(messages)
+    img.save("bingo.png")
+    await channel.send(file=discord.File("bingo.png"))
+    await asyncio.sleep(120)
+    await ctx.channel.purge(limit=1, check=is_me)
+
+
+
+bot.run('TOKEN')
