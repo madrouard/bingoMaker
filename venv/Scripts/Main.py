@@ -3,6 +3,9 @@ from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 import random
 import asyncio
+from bs4 import BeautifulSoup
+import requests
+from selenium import webdriver
 
 bot = commands.Bot(command_prefix='!')
 
@@ -52,6 +55,36 @@ async def bingoBoard(ctx):
     await asyncio.sleep(120)
     await ctx.channel.purge(limit=1, check=is_me)
 
+@bot.command()
+async def UTCovid(ctx):
+    await ctx.message.delete()
+    channel = ctx.channel
+    UT = requests.get('https://www.utoledo.edu/coronavirus/')
+    UTsoup = BeautifulSoup(UT.text, 'html.parser')
+    UTable = UTsoup.find('table')
+    UTable = UTable.getText()
+    UTable = UTable.split()
+    UTable = UTable[15:]
+    total = 0
+    for i in range(0, len(UTable), 6):
+        total += int(UTable[i])
+    await channel.send("UToledo currently has " + str(total) + " covid-19 cases.")
 
+@bot.command()
+async def OpenNow(ctx):
+    await ctx.message.delete()
+    options = webdriver.ChromeOptions()
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--incognito')
+    options.add_argument('--headless')
+    driver = webdriver.Chrome("C:/Users/rfd20/PycharmProjects/bingoMaker/venv/Lib/site-packages/selenium/webdriver/chrome", chrome_options=options)
+    driver.get('https://dineoncampus.com/utoledo')
+    channel = ctx.channel
+    await asyncio.sleep(10)
+    food = driver.page_source
+    soup = BeautifulSoup(food.text, 'html.parser')
+    open = soup.find_all('div', {'class' : 'row whats-open-tile_hours_8qXHw'})
+    #open = open.get_text()
+    await channel.send(open)
 
-bot.run('TOKEN')
+bot.run('TOKEN GO HERE')

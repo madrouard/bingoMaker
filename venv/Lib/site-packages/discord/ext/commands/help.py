@@ -155,7 +155,7 @@ class Paginator:
 
     @property
     def pages(self):
-        """Returns the rendered list of pages."""
+        """class:`list`: Returns the rendered list of pages."""
         # we have more than just the prefix in our current page
         if len(self._current_page) > (0 if self.prefix is None else 1):
             self.close_page()
@@ -326,6 +326,49 @@ class HelpCommand:
         self._command_impl._eject_cog()
         self._command_impl = None
 
+    def add_check(self, func):
+        """
+        Adds a check to the help command.
+
+        .. versionadded:: 1.4
+
+        Parameters
+        ----------
+        func
+            The function that will be used as a check.
+        """
+
+        if self._command_impl is not None:
+            self._command_impl.add_check(func)
+        else:
+            try:
+                self.command_attrs["checks"].append(func)
+            except KeyError:
+                self.command_attrs["checks"] = [func]
+
+    def remove_check(self, func):
+        """
+        Removes a check from the help command.
+
+        This function is idempotent and will not raise an exception if
+        the function is not in the command's checks.
+
+        .. versionadded:: 1.4
+
+        Parameters
+        ----------
+        func
+            The function to remove from the checks.
+        """
+
+        if self._command_impl is not None:
+            self._command_impl.remove_check(func)
+        else:
+            try:
+                self.command_attrs["checks"].remove(func)
+            except (KeyError, ValueError):
+                pass
+
     def get_bot_mapping(self):
         """Retrieves the bot mapping passed to :meth:`send_bot_help`."""
         bot = self.context.bot
@@ -345,7 +388,7 @@ class HelpCommand:
         # for this common use case rather than waste performance for the
         # odd one.
         pattern = re.compile(r"<@!?%s>" % user.id)
-        return pattern.sub("@%s" % user.display_name, self.context.prefix)
+        return pattern.sub("@%s" % user.display_name.replace('\\', r'\\'), self.context.prefix)
 
     @property
     def invoked_with(self):
